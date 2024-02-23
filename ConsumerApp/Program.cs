@@ -1,4 +1,10 @@
-﻿class Program
+﻿using System;
+using Npgsql.Replication.PgOutput.Messages;
+using ConsumerApp.DataContext;
+using ConsumerApp.Models;
+using ConsumerApp;
+
+class Program
 {
     static void Main()
     {
@@ -15,5 +21,15 @@
         Console.ReadLine();
 
         rabbitMQConsumer.StopConsuming();
+
+
+        // Insert a message into the database
+        //var message = new Message
+        //{
+        //    Timestamp = DateTime.UtcNow,
+        //    counter = 0
+        //};
+
+        //Database.InsertMessage(message);
     }
 }
