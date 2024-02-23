@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -43,11 +44,24 @@ public class RabbitMQConsumer
         {
             var body = args.Body.ToArray();
             string message = Encoding.UTF8.GetString(body);
-            Console.WriteLine($"Message Received: {message}");
+
+            var messageData = JsonConvert.DeserializeObject<MessageData>(message);
+
+            int counter = messageData.counter;
+            int unixTime = messageData.unixTime;
+
+            Console.WriteLine($"Message Received: Counter = {counter}, UnixTime={unixTime}");
             _channel.BasicAck(args.DeliveryTag, false);
         };
 
         string consumerTag = _channel.BasicConsume(_queueName, false, consumer);
+    }
+
+    public class MessageData
+    {
+    public int counter { get; set; }
+    public int unixTime { get; set; }
+
     }
 
     public void StopConsuming()

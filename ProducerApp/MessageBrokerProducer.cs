@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading;
 using RabbitMQ.Client;
+using Newtonsoft.Json;
 
 public class RabbitMQPublisher
 {
@@ -49,6 +50,33 @@ public class RabbitMQPublisher
             byte[] messageBodyBytes = Encoding.UTF8.GetBytes($"Hello message broker, Timestamp of message creation: {DateTime.Now} Counter: {counter} \n");
             _channel.BasicPublish(_exchangeName, _routingKey, properties, messageBodyBytes);
             Console.WriteLine($"Sent '{messageBodyBytes}'");
+            counter++;
+            Thread.Sleep(1000);
+        }
+    }
+
+    public void PublishMessageWithTime()
+    {
+        var properties = _channel.CreateBasicProperties();
+        properties.Persistent = true;
+
+        var counter = 0;
+        
+        for (int i = 0; i < _messageCount; i++)
+        {
+            var unixTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+            var messageData = new
+            {
+                counter = counter,
+                unixTime = unixTime
+            };
+
+            byte[] messageBodyBytes =
+                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageData));
+            _channel.BasicPublish(_exchangeName, _routingKey, properties, messageBodyBytes);
+            Console.WriteLine(
+                $"Sent message with counter: '{counter}' and current time (Unix): {unixTime}\n");
             counter++;
             Thread.Sleep(1000);
         }
