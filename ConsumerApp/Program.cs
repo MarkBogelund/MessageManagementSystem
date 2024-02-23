@@ -1,44 +1,19 @@
-﻿using System.Text;
-using System.Threading.Channels;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-
-ConnectionFactory factory = new();
-
-factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
-factory.ClientProvidedName = "Consumer";
-
-IConnection cnn = factory.CreateConnection();
-
-IModel channel = cnn.CreateModel();
-
-string exchangeName = "Message_Broker";
-string routingKey = "Broker_key";
-string queueName = "Message_queue";
-
-
-channel.ExchangeDeclare(exchangeName, ExchangeType.Direct);
-channel.QueueDeclare(queueName, true, false, false, null);
-channel.QueueBind(queueName, exchangeName, routingKey, null);
-channel.BasicQos(0, 1, false);
-
-var consumer = new EventingBasicConsumer(channel);
-consumer.Received += (sender, args) =>
+﻿class Program
 {
-    var body = args.Body.ToArray();
+    static void Main()
+    {
+        string rabbitMQUri = "amqp://guest:guest@localhost:5672";
+        string exchangeName = "Message_Broker";
+        string routingKey = "Broker_key";
+        string queueName = "Message_queue";
 
-    string message = Encoding.UTF8.GetString(body);
+        var rabbitMQConsumer = new RabbitMQConsumer(rabbitMQUri, exchangeName, routingKey, queueName);
+        rabbitMQConsumer.StartConsuming();
 
-    Console.Write($"Message Recieved: {message}");
+        Console.WriteLine("Consumer is ready to recieve messages...\n");
+        Console.WriteLine("Press Enter to stop consuming...");
+        Console.ReadLine();
 
-    channel.BasicAck(args.DeliveryTag, false);
-};
-
-string consumerTag = channel.BasicConsume(queueName, false, consumer);
-
-Console.ReadLine();
-
-channel.BasicCancel(consumerTag);
-
-channel.Close();
-cnn.Close();
+        rabbitMQConsumer.StopConsuming();
+    }
+}
