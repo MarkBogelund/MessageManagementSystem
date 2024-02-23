@@ -9,7 +9,7 @@
         int messageCount = 10;
 
         var rabbitMQPublisher = new RabbitMQPublisher(rabbitMQUri, exchangeName, routingKey, queueName, messageCount);
-        rabbitMQPublisher.PublishMessages();
+        rabbitMQPublisher.PublishMessageWithTime();
         rabbitMQPublisher.CloseConnection();
     }
 }
