@@ -6,7 +6,7 @@ namespace ConsumerApp
 {
     public static class Database
     {
-        public static void InsertMessage(Message message)
+        public static void InsertMessage(MessageData message)
         {
             using (var context = new AppDBContext())
             {

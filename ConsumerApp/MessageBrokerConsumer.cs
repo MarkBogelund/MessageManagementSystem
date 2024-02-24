@@ -3,70 +3,89 @@ using System.Text;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Threading.Tasks;
 
-public class RabbitMQConsumer
+namespace ConsumerApp
 {
-    private readonly IConnection _connection;
-    private readonly IModel _channel;
-    private readonly string _exchangeName;
-    private readonly string _routingKey;
-    private readonly string _queueName;
-
-    public RabbitMQConsumer(string uri, string exchangeName, string routingKey, string queueName)
+    public class RabbitMQConsumer
     {
-        var factory = new ConnectionFactory
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
+        private readonly string _exchangeName;
+        private readonly string _routingKey;
+        private readonly string _queueName;
+
+        private readonly EventingBasicConsumer _consumer;
+
+        public RabbitMQConsumer(string uri, string exchangeName, string routingKey, string queueName)
         {
-            Uri = new Uri(uri),
-            ClientProvidedName = "Consumer"
-        };
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(uri),
+                ClientProvidedName = "Consumer"
+            };
 
-        _connection = factory.CreateConnection();
-        _channel = _connection.CreateModel();
-        _exchangeName = exchangeName;
-        _routingKey = routingKey;
-        _queueName = queueName;
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+            _exchangeName = exchangeName;
+            _routingKey = routingKey;
+            _queueName = queueName;
 
-        Initialize();
-    }
+            Initialize();
 
-    private void Initialize()
-    {
-        _channel.ExchangeDeclare(_exchangeName, ExchangeType.Direct);
-        _channel.QueueDeclare(_queueName, true, false, false, null);
-        _channel.QueueBind(_queueName, _exchangeName, _routingKey, null);
-        _channel.BasicQos(0, 1, false);
-    }
+            _consumer = new EventingBasicConsumer(_channel);
+        }
 
-    public void StartConsuming()
-    {
-        var consumer = new EventingBasicConsumer(_channel);
-        consumer.Received += (sender, args) =>
+        private void Initialize()
         {
-            var body = args.Body.ToArray();
-            string message = Encoding.UTF8.GetString(body);
+            _channel.ExchangeDeclare(_exchangeName, ExchangeType.Direct);
+            _channel.QueueDeclare(_queueName, true, false, false, null);
+            _channel.QueueBind(_queueName, _exchangeName, _routingKey, null);
+            _channel.BasicQos(0, 1, false);
+        }
 
-            var messageData = JsonConvert.DeserializeObject<MessageData>(message);
+        public async Task<MessageData> StartConsumingAsync()
+        {
+            var tcs = new TaskCompletionSource<MessageData>();
 
-            int counter = messageData.counter;
-            int unixTime = messageData.unixTime;
+            _consumer.Received += (sender, args) =>
+            {
+                try
+                {
+                    var body = args.Body.ToArray();
+                    string message = Encoding.UTF8.GetString(body);
 
-            Console.WriteLine($"Message Received: Counter = {counter}, UnixTime={unixTime}");
-            _channel.BasicAck(args.DeliveryTag, false);
-        };
+                    var messageData = JsonConvert.DeserializeObject<MessageData>(message);
 
-        string consumerTag = _channel.BasicConsume(_queueName, false, consumer);
-    }
+                    if (!tcs.Task.IsCompleted)
+                    {
+                        if (messageData == null)
+                        {
+                            Console.WriteLine("Received message was null.");
+                            return;
+                        }
 
-    public class MessageData
-    {
-    public int counter { get; set; }
-    public int unixTime { get; set; }
+                        tcs.SetResult(messageData);
+                        // Acknowledge the message after it was processed successfully
+                        _channel.BasicAck(args.DeliveryTag, false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error or handle it as appropriate for your application
+                    Console.WriteLine($"Error processing message: {ex.Message}");
+                }
+            };
 
-    }
+            _channel.BasicConsume(_queueName, false, _consumer);
 
-    public void StopConsuming()
-    {
-        _channel.Close();
-        _connection.Close();
+            return await tcs.Task;
+        }
+
+        public void StopConsuming()
+        {
+            _channel.Close();
+            _connection.Close();
+        }
     }
 }
