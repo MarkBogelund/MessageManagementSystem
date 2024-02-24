@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ConsumerApp.Models
 {
-    public class Message
+    public class MessageEntry
     {
         [Key]
         public int Id { get; set; }
