@@ -1,0 +1,35 @@
+@startuml system
+
+mainframe **sd** System
+skinparam style strictuml
+
+participant "Producer" as P
+participant "Message Broker" as MB
+participant "Consumer" as C
+database "Database" as D
+
+loop every 1 second
+    activate P
+    P -> P: Generate message with TIME and COUNT
+    P -> MB: Send message
+    activate MB
+    deactivate P
+end
+
+MB -> MB: Get first message in queue
+MB -> C: Send message
+activate C
+deactivate MB
+
+C -> C: Compare message TIME with current TIME
+
+alt Time difference < 1 minute and second is odd
+    C -> MB: Send message with COUNT + 1
+else Time difference < 1 minute and second is even
+    C -> D: Save message
+else Time difference > 1 minute
+    C -> C: Discard message
+    deactivate C
+end
+
+@enduml
