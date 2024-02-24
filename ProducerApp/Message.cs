@@ -8,7 +8,8 @@ namespace ProducerApp
 {
     public class Message
     {
-        public int counter { get; set; }
-        public int unixTime { get; set; }
+        public int Id { get; set; }
+        public int Counter { get; set; }
+        public int Time { get; set; }
     }
 }
