@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("ProducerApp.Test")]
 namespace ProducerApp
 {
     internal class Program
