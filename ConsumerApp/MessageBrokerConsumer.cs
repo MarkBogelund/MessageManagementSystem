@@ -8,7 +8,7 @@ using ConsumerApp.Models;
 
 namespace ConsumerApp
 {
-    public class RabbitMQConsumer
+    public class MessageBrokerConsumer
     {
         private readonly IConnection _connection;
         private readonly IModel _channel;
@@ -18,8 +18,9 @@ namespace ConsumerApp
 
         private readonly EventingBasicConsumer _consumer;
 
-        public RabbitMQConsumer(string uri, string exchangeName, string routingKey, string queueName)
+        public MessageBrokerConsumer(string uri, string exchangeName, string routingKey, string queueName)
         {
+            // Create a connection to RabbitMQ
             var factory = new ConnectionFactory
             {
                 Uri = new Uri(uri),
@@ -47,17 +48,21 @@ namespace ConsumerApp
 
         public async Task<Message> StartConsumingAsync()
         {
+            // Create a task completion source to await the next message
             var tcs = new TaskCompletionSource<Message>();
 
+            // Set up a callback to be invoked when a message is received
             _consumer.Received += (sender, args) =>
             {
                 try
                 {
+                    // Extract and decode the message from the event arguments
                     var body = args.Body.ToArray();
                     string message = Encoding.UTF8.GetString(body);
 
                     var messageData = JsonConvert.DeserializeObject<Message>(message);
 
+                    // If the task is not yet completed, set the result
                     if (!tcs.Task.IsCompleted)
                     {
                         if (messageData == null)
@@ -78,8 +83,10 @@ namespace ConsumerApp
                 }
             };
 
+            // Start consuming messages
             _channel.BasicConsume(_queueName, false, _consumer);
 
+            // Await the next message
             return await tcs.Task;
         }
 
