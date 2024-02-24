@@ -10,6 +10,6 @@ namespace ConsumerApp.DataContext
             optionsBuilder.UseNpgsql("Host=localhost;Database=messagesDB;Username=postgres;Password=postgres");
         }
 
-        public DbSet<MessageEntry> Messages { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }

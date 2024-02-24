@@ -24,14 +24,39 @@ class Program
         while (true)
         {
             // Retrieve message asynchronously
-            MessageData message = await rabbitMQConsumer.StartConsumingAsync();
+            Message message = await rabbitMQConsumer.StartConsumingAsync();
 
             // Calculate time difference
             int actualTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            int timeDifference = actualTime - message.unixTime;
+            int messageTime = message.Time;
+            int timeDifference = actualTime - messageTime;
 
             // Display received message
-            Console.WriteLine($"Message Received: Counter = {message.counter}, UnixTime={message.unixTime}, Time difference={timeDifference}");
+            Console.WriteLine($"Message Received: Counter = {message.Counter}, UnixTime={messageTime}, Time difference={timeDifference}");
+
+            // If message is older than 1 minute, discard it
+            if (timeDifference > 60)
+            {
+                Console.WriteLine("Difference > 1 min -> Discarding");
+                continue;
+            }
+
+            int seconds = messageTime % 60;
+
+            if (seconds % 2 == 0)
+            {
+                // Seconds are even
+                Database.InsertMessage(message);
+                Console.WriteLine("Seconds are even -> Inserting into database");
+            }
+            else
+            {
+                // Seconds are odd
+                message.Counter++;
+                //SendToMessageQueue(message);
+                Console.WriteLine("Seconds are odd -> Sending to message queue");
+            }
+
         }
     }
 }

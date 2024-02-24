@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
+using ConsumerApp.Models;
 
 namespace ConsumerApp
 {
@@ -44,9 +45,9 @@ namespace ConsumerApp
             _channel.BasicQos(0, 1, false);
         }
 
-        public async Task<MessageData> StartConsumingAsync()
+        public async Task<Message> StartConsumingAsync()
         {
-            var tcs = new TaskCompletionSource<MessageData>();
+            var tcs = new TaskCompletionSource<Message>();
 
             _consumer.Received += (sender, args) =>
             {
@@ -55,7 +56,7 @@ namespace ConsumerApp
                     var body = args.Body.ToArray();
                     string message = Encoding.UTF8.GetString(body);
 
-                    var messageData = JsonConvert.DeserializeObject<MessageData>(message);
+                    var messageData = JsonConvert.DeserializeObject<Message>(message);
 
                     if (!tcs.Task.IsCompleted)
                     {

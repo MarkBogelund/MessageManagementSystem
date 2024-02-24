@@ -19,21 +19,21 @@ class Program
         {
             // Create message data
             int _counter = 0;
-            int _unixTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            int _time = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
             // Create message
             Message message = new Message
             {
-                counter = _counter,
-                unixTime = _unixTime
+                Counter = _counter,
+                Time = _time
             };
 
             // Publish message
             messageBroker.PublishMessage(message);
             
             // Log message
-            Console.WriteLine($"Sent message with counter: '{message.counter}' " +
-                                $"and current time (Unix): {message.unixTime}\n");
+            Console.WriteLine($"Sent message with counter: '{message.Counter}' " +
+                                $"and current time (Unix): {message.Time}\n");
             
             // Delay for 1 second
             Thread.Sleep(1000);
