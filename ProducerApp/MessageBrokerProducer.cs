@@ -4,88 +4,59 @@ using System.Threading;
 using RabbitMQ.Client;
 using Newtonsoft.Json;
 
-public class RabbitMQPublisher
+namespace ProducerApp
 {
-    private readonly IConnection _connection;
-    private readonly IModel _channel;
-    private readonly string _exchangeName;
-    private readonly string _routingKey;
-    private readonly string _queueName;
-    private readonly int _messageCount;
-
-    public RabbitMQPublisher(string uri, string exchangeName, string routingKey, string queueName, int messageCount)
+    public class MessageBrokerProducer
     {
-        var factory = new ConnectionFactory
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
+        private readonly string _exchangeName;
+        private readonly string _routingKey;
+        private readonly string _queueName;
+
+        private IBasicProperties _properties;
+
+        public MessageBrokerProducer(string uri, string exchangeName, string routingKey, string queueName)
         {
-            Uri = new Uri(uri),
-            ClientProvidedName = "Publisher"
-        };
-
-        _connection = factory.CreateConnection();
-        _channel = _connection.CreateModel();
-        _exchangeName = exchangeName;
-        _routingKey = routingKey;
-        _queueName = queueName;
-        _messageCount = messageCount;
-
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        _channel.ExchangeDeclare(_exchangeName, ExchangeType.Direct);
-        _channel.QueueDeclare(_queueName, true, false, false, null);
-        _channel.QueueBind(_queueName, _exchangeName, _routingKey, null);
-    }
-
-    public void PublishMessages()
-    {
-        var properties = _channel.CreateBasicProperties();
-        properties.Persistent = true;
-
-        var counter = 0;
-
-        for (int i = 0; i < _messageCount; i++)
-        {
-            byte[] messageBodyBytes = Encoding.UTF8.GetBytes($"Hello message broker, Timestamp of message creation: {DateTime.Now} Counter: {counter} \n");
-            _channel.BasicPublish(_exchangeName, _routingKey, properties, messageBodyBytes);
-            Console.WriteLine($"Sent '{messageBodyBytes}'");
-            counter++;
-            Thread.Sleep(1000);
-        }
-    }
-
-    public void PublishMessageWithTime()
-    {
-        var properties = _channel.CreateBasicProperties();
-        properties.Persistent = true;
-
-        var counter = 0;
-        
-        for (int i = 0; i < _messageCount; i++)
-        {
-            var unixTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-
-            var messageData = new
+            var factory = new ConnectionFactory
             {
-                counter = counter,
-                unixTime = unixTime
+                Uri = new Uri(uri),
+                ClientProvidedName = "Publisher"
             };
 
-            byte[] messageBodyBytes =
-                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageData));
-            _channel.BasicPublish(_exchangeName, _routingKey, properties, messageBodyBytes);
-            Console.WriteLine(
-                $"Sent message with counter: '{counter}' and current time (Unix): {unixTime}\n");
-            counter++;
-            Thread.Sleep(1000);
-        }
-    }
+            // Create connection and channel
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+            _exchangeName = exchangeName;
+            _routingKey = routingKey;
+            _queueName = queueName;
+            
+            // Create properties and enable persistence
+            _properties = _channel.CreateBasicProperties();
+            _properties.Persistent = true;
 
-    public void CloseConnection()
-    {
-        _channel.Close();
-        _connection.Close();
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            _channel.ExchangeDeclare(_exchangeName, ExchangeType.Direct);
+            _channel.QueueDeclare(_queueName, true, false, false, null);
+            _channel.QueueBind(_queueName, _exchangeName, _routingKey, null);
+        }
+
+        public void PublishMessage(Message message)
+        {
+            // Convert message to byte array and publish
+            byte[] messageBodyBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
+            _channel.BasicPublish(_exchangeName, _routingKey, _properties, messageBodyBytes);
+        }
+
+        public void CloseConnection()
+        {
+            _channel.Close();
+            _connection.Close();
+        }
     }
 }
 
