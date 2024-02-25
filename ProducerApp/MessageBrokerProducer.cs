@@ -8,6 +8,7 @@ namespace ProducerApp
 {
     public class MessageBrokerProducer
     {
+        // Declare RabbitMQ connection and channel
         private readonly IConnection _connection;
         private readonly IModel _channel;
         private readonly string _exchangeName;
@@ -18,13 +19,14 @@ namespace ProducerApp
 
         public MessageBrokerProducer(string uri, string exchangeName, string routingKey, string queueName)
         {
+            // Create a connection to RabbitMQ
             var factory = new ConnectionFactory
             {
                 Uri = new Uri(uri),
                 ClientProvidedName = "Producer"
             };
 
-            // Create connection and channel
+            // Setup connection and channel
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
             _exchangeName = exchangeName;

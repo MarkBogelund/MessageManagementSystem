@@ -4,9 +4,9 @@ using System;
 
 namespace ConsumerApp
 {
-    public static class Database
+    public class Database
     {
-        public static void InsertMessage(Message message)
+        public void InsertMessage(Message message)
         {
             using (var context = new AppDBContext())
             {
