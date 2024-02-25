@@ -21,7 +21,7 @@ namespace ProducerApp
             var factory = new ConnectionFactory
             {
                 Uri = new Uri(uri),
-                ClientProvidedName = "Publisher"
+                ClientProvidedName = "Producer"
             };
 
             // Create connection and channel

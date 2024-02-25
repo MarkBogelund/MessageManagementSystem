@@ -13,6 +13,7 @@ class Program
         string queueName = "Message_queue";
 
         var messageBroker = new MessageBrokerProducer(rabbitMQUri, exchangeName, routingKey, queueName);
+        int id = 0;
 
         // Send a message every second
         while (running)
@@ -20,12 +21,13 @@ class Program
             // Create message data
             int _counter = 0;
             int _time = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-
+            id++;
             // Create message
             Message message = new Message
             {
                 Counter = _counter,
-                Time = _time
+                Time = _time,
+                Id = id
             };
 
             // Publish message
