@@ -15,13 +15,9 @@ class Program
         string queueName = "Message_queue";
 
         MessageBrokerConsumer messageBroker = new MessageBrokerConsumer(rabbitMQUri, exchangeName, routingKey, queueName);
-
         var messageBrokerProducer = new MessageBrokerProducer(rabbitMQUri, exchangeName, routingKey, queueName);
 
         Console.WriteLine("Press [enter] to exit");
-
-        //SendMessageToQueue(messageBrokerProducer);
-        //SendMessageToQueue(messageBrokerProducer);
 
         // Start consuming messages asynchronously
         await ConsumeMessagesAsync(messageBroker, messageBrokerProducer);
@@ -30,19 +26,14 @@ class Program
         messageBroker.StopConsuming();
     }
 
-    public static void SendMessageToQueue(MessageBrokerProducer messageBrokerProducer)
+    public static void SendMessageToQueue(MessageBrokerProducer messageBrokerProducer, Message message)
     {
-        // Create message data
-        int _counter = 0;
-        int _time = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        // Wait for 1 second
+        Task.Delay(1000).Wait();
 
-        // Create message
-        Message message = new Message
-        {
-            Id = 1,
-            Counter = _counter,
-            Time = _time,
-        };
+        // Increment counter and update time
+        message.Counter++;
+        message.Time = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
         // Publish message
         messageBrokerProducer.PublishMessage(message);
@@ -50,17 +41,12 @@ class Program
 
     static async Task ConsumeMessagesAsync(MessageBrokerConsumer messageBroker, MessageBrokerProducer messageBrokerProducer)
     {
-        bool shouldReceiveNextMessage = true;
-        Message message = null;
-
-        while (message == null)
+        while (true)
         {
-            message = await messageBroker.StartConsumingAsync();
+            // If a new message is received, handle it
+            var message = await messageBroker.StartConsumingAsync();
             HandleData(message, messageBrokerProducer);
         }
-
-
-
     }
 
     static void HandleData(Message message, MessageBrokerProducer messageBrokerProducer)
@@ -71,7 +57,7 @@ class Program
         int timeDifference = actualTime - messageTime;
 
         // Display received message
-        Console.WriteLine($"Message Received: Counter = {message.Counter}, UnixTime={messageTime}, Time difference={timeDifference}");
+        Console.WriteLine($"Message {message.Id}, Counter: '{message.Counter}, Time: {message.Time}, Difference: {timeDifference}");
 
         // If message is older than 1 minute, discard it
         if (timeDifference > 60)
@@ -88,14 +74,13 @@ class Program
         if (seconds % 2 == 0)
         {
             // Seconds are even
-            //Database.InsertMessage(message);
             Console.WriteLine("Seconds are even -> Inserting into database");
-
+            //Database.InsertMessage(message);
         }
         else
         {
-            SendMessageToQueue(messageBrokerProducer);
             Console.WriteLine("Seconds are odd -> Sending to message queue");
+            SendMessageToQueue(messageBrokerProducer, message);
         }
 
         // Write new line
