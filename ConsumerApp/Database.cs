@@ -1,10 +1,11 @@
 ﻿using ConsumerApp.DataContext;
 using ConsumerApp.Models;
 using System;
+using ConsumerApp.Interfaces;
 
 namespace ConsumerApp
 {
-    public class Database
+    public class Database : IDatabase
     {
         public void InsertMessage(Message message)
         {

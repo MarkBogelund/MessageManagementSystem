@@ -5,10 +5,11 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
 using ConsumerApp.Models;
+using ConsumerApp.Interfaces;
 
 namespace ConsumerApp
 {
-    public class MessageBrokerConsumer
+    public class MessageBrokerConsumer : IMessageBrokerConsumer
     {
         // Declare RabbitMQ connection and channel
         private readonly IConnection _connection;

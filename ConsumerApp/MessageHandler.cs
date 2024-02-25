@@ -3,19 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ConsumerApp.Interfaces;
 using ConsumerApp.Models;
 
 namespace ConsumerApp
 {
-    internal class MessageHandler
+    public class MessageHandler : IMessageHandler
     {
         MessageBrokerConsumer messageBroker;
         Database database;
+        private IMessageBrokerConsumer messageBrokerMock;
+        private IDatabase databaseMock;
 
         public MessageHandler(MessageBrokerConsumer _messageBroker, Database _database)
         {
             messageBroker = _messageBroker;
             database = _database;
+        }
+
+        public MessageHandler(IMessageBrokerConsumer messageBrokerMock, IDatabase databaseMock)
+        {
+            this.messageBrokerMock = messageBrokerMock;
+            this.databaseMock = databaseMock;
         }
 
         public void HandleMessage(Message message)
@@ -46,7 +55,7 @@ namespace ConsumerApp
             return actualTime - messageTime;
         }
 
-        void HandleData(Message message)
+        public void HandleData(Message message)
         {
             // Get seconds from message time
             int seconds = message.Time % 60;
