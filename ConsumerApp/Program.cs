@@ -14,6 +14,7 @@ class Program
         string routingKey = "Broker_key";
         string queueName = "Message_queue";
 
+        // Running flag
         bool running = true;
 
         MessageBrokerConsumer messageBroker = new MessageBrokerConsumer(rabbitMQUri, exchangeName, routingKey, queueName);
