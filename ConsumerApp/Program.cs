@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ConsumerApp.DataContext;
-using ConsumerApp.Models;
 using ConsumerApp;
+using ConsumerApp.Models;
 
 class Program
 {
@@ -14,60 +14,23 @@ class Program
         string routingKey = "Broker_key";
         string queueName = "Message_queue";
 
+        // Running flag
+        bool running = true;
+
         MessageBrokerConsumer messageBroker = new MessageBrokerConsumer(rabbitMQUri, exchangeName, routingKey, queueName);
+        Database database = new Database();
+        MessageHandler messageHandler = new MessageHandler(messageBroker, database);
 
-        Console.WriteLine("Press [enter] to exit");
+        Console.WriteLine("Consuming messages...");
 
-        // Start consuming messages asynchronously
-        await ConsumeMessagesAsync(messageBroker);
+        while (running)
+        {
+            // If a new message is received, handle it
+            Message message = await messageBroker.StartConsumingAsync();
+            messageHandler.HandleMessage(message);
+        }
 
         // Terminate the application
         messageBroker.StopConsuming();
-    }
-
-    static async Task ConsumeMessagesAsync(MessageBrokerConsumer messageBroker)
-    {
-        while (true)
-        {
-            // Retrieve message asynchronously
-            Message message = await messageBroker.StartConsumingAsync();
-
-            // Calculate time difference
-            int actualTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            int messageTime = message.Time;
-            int timeDifference = actualTime - messageTime;
-
-            // Display received message
-            Console.WriteLine($"Message Received: Counter = {message.Counter}, UnixTime={messageTime}, Time difference={timeDifference}");
-
-            // If message is older than 1 minute, discard it
-            if (timeDifference > 60)
-            {
-                Console.WriteLine("Difference > 1 min -> Discarding");
-                Console.WriteLine();
-                continue;
-            }
-
-            // Get seconds from message time
-            int seconds = messageTime % 60;
-
-            // Check if seconds are even or odd
-            if (seconds % 2 == 0)
-            {
-                // Seconds are even
-                Database.InsertMessage(message);
-                Console.WriteLine("Seconds are even -> Inserting into database");
-            }
-            else
-            {
-                // Seconds are odd
-                message.Counter++;
-                //SendToMessageQueue(message);
-                Console.WriteLine("Seconds are odd -> Sending to message queue");
-            }
-
-            // Write new line
-            Console.WriteLine();
-        }
     }
 }
