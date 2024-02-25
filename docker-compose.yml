@@ -1,0 +1,49 @@
+version: "3.4"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "8080:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      retries: 3
+      timeout: 5s
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "messagesDB"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+
+  producerapp:
+    image: producerapp
+    build:
+      context: .
+      dockerfile: ProducerApp/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  consumerapp:
+    image: consumerapp
+    build:
+      context: .
+      dockerfile: ConsumerApp/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      CONNECTION_STRING: "Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=messagesDB"
