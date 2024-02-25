@@ -10,7 +10,7 @@ namespace ProducerApp
             bool running = true;
 
             // Connection properties for RabbitMQ
-            string rabbitMQUri = "amqp://guest:guest@localhost:5672";
+            string rabbitMQUri = "amqp://guest:guest@rabbitmq:5672";
             string exchangeName = "Message_Broker";
             string routingKey = "Broker_key";
             string queueName = "Message_queue";
@@ -18,6 +18,8 @@ namespace ProducerApp
             var messageBroker = new MessageBrokerProducer(rabbitMQUri, exchangeName, routingKey, queueName);
 
             int id_counter = 0;
+
+            Console.WriteLine("Producer started\n");
 
             // Send a message every second
             while (running)

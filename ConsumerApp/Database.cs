@@ -1,18 +1,23 @@
 ﻿using ConsumerApp.DataContext;
 using ConsumerApp.Models;
-using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace ConsumerApp
 {
     public class Database
     {
+        private readonly AppDBContext _context;
+
+        public Database(AppDBContext context)
+        {
+            _context = context;
+        }
+
         public void InsertMessage(Message message)
         {
-            using (var context = new AppDBContext())
-            {
-                context.Messages.Add(message);
-                context.SaveChanges();
-            }
+            // Insert the message using the injected context
+            _context.Messages.Add(message);
+            _context.SaveChanges();
         }
     }
 }
