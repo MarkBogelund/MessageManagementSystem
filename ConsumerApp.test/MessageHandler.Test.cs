@@ -10,17 +10,16 @@ namespace ConsumerApp.test
 {
     public class MessageHandlerTests
     {
-        private IMessageBrokerConsumer messageBrokerMock;
-        private IDatabase databaseMock;
+        private Mock<IMessageBrokerConsumer> messageBrokerMock;
+        private Mock<IDatabase> databaseMock;
         private MessageHandler messageHandler;
-        private IMessageHandler messageHandlerMock;
+
         [SetUp]
         public void Setup()
         {
-            messageBrokerMock = Mock.Of<IMessageBrokerConsumer>();
-            databaseMock = Mock.Of<IDatabase>();
-            messageHandler = new MessageHandler(messageBrokerMock, databaseMock);
-            messageHandlerMock = Mock.Of<IMessageHandler>();
+            messageBrokerMock = new Mock<IMessageBrokerConsumer>();
+            databaseMock = new Mock<IDatabase>();
+            messageHandler = new MessageHandler(messageBrokerMock.Object, databaseMock.Object);
         }
 
         //ClassName_MethodName_ExpectedResult
@@ -43,19 +42,20 @@ namespace ConsumerApp.test
         [Test]
         public void MessageHandler_handleData_CallInsertMessage()
         {
-            //arrange
+            var testMessage = new Message { Id = 1, Counter = 2, Time = 1708887144 }; // seconds are even
 
-            //act
+            // Act
+            messageHandler.HandleData(testMessage);
 
-            //assert
-
+            // Assert
+            databaseMock.Verify(x => x.InsertMessage(testMessage), Times.AtLeastOnce);
         }
 
         [Test]
         public void MessageHandler_HandleMessage_DiscardMessage()
         {
             // Arrange
-            var messageHandlerMock = new Mock<MessageHandler>();
+            var messageHandlerMock = new Mock<IMessageHandler>();
             var testMessage = new Message
             {
                 Id = 0,
@@ -66,22 +66,20 @@ namespace ConsumerApp.test
             // Act
             messageHandlerMock.Object.HandleMessage(testMessage);
 
-            // Assert
-            messageHandlerMock.Verify(x => x.HandleData(It.IsAny<Message>()), Times.Never);
-
+            // Assert that it has called HandleData once
+            messageHandlerMock.Verify(x => x.HandleData(testMessage), Times.Never);
         }
 
         [Test]
         public void MessageHandler_HandleMessage_CallHandleData()
         {
-            //arrange
-            var timeMessage = new Message();
-            timeMessage.Time = 1708887143; // time at 19:52 25/02/2024
+            var testMessage = new Message { Id = 1, Counter = 2, Time = 1708887145 }; // seconds are odd
 
-            //act
+            // Act
+            messageHandler.HandleData(testMessage);
 
-            //assert
-
+            // Assert
+            messageBrokerMock.Verify(x => x.SendMessageToQueue(testMessage), Times.AtLeastOnce);
         }
     }
 }
