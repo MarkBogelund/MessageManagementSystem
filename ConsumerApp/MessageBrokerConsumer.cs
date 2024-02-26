@@ -22,18 +22,13 @@ namespace ConsumerApp
         // Properties for sending messages to the queue
         private IBasicProperties _properties;
 
-        public MessageBrokerConsumer(string uri, string exchangeName, string routingKey, string queueName)
+        public MessageBrokerConsumer(IConnectionFactory factory, string uri, string exchangeName, string routingKey, string queueName)
         {
-            // Create a connection to RabbitMQ
-            var factory = new ConnectionFactory
-            {
-                Uri = new Uri(uri),
-                ClientProvidedName = "Consumer"
-            };
-
             // Setup connection to RabbitMQ
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
+
+            // Setup connection to RabbitMQ
             _exchangeName = exchangeName;
             _routingKey = routingKey;
             _queueName = queueName;
@@ -103,7 +98,7 @@ namespace ConsumerApp
         {
             // Convert message to byte array and publish
             byte[] messageBodyBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-            _channel.BasicPublish(_exchangeName, _routingKey, _properties, messageBodyBytes);
+            _channel.BasicPublish(_exchangeName, _routingKey, _properties, new ReadOnlyMemory<byte>(messageBodyBytes));
         }
 
         public void StopConsuming()

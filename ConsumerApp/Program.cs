@@ -4,6 +4,7 @@ using ConsumerApp.DataContext;
 using ConsumerApp;
 using ConsumerApp.Models;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
 
 class Program
 {
@@ -19,13 +20,21 @@ class Program
         // Running flag
         bool running = true;
 
-        MessageBrokerConsumer messageBroker = new MessageBrokerConsumer(localRabbitMQUri, exchangeName, routingKey, queueName);
-        
+        // Create IConnection
+        var factory = new ConnectionFactory
+        {
+            Uri = new Uri(localRabbitMQUri),
+            ClientProvidedName = "Consumer"
+        };
+
+        // Create an instance of MessageBrokerConsumer
+        var messageBroker = new MessageBrokerConsumer(factory, localRabbitMQUri, exchangeName, routingKey, queueName);
+
         AppDBContext context = new AppDBContext();
         context.Database.Migrate();
 
         Database database = new Database(context);
-        
+
         MessageHandler messageHandler = new MessageHandler(messageBroker, database);
 
         Console.WriteLine("Consuming messages...");
