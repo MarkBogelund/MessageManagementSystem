@@ -10,6 +10,6 @@ namespace ConsumerApp.Interfaces
 {
     public interface IDatabase
     {
-        void InsertMessage(Message message);
+        public void InsertMessage(Message message);
     }
 }

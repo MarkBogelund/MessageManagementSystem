@@ -8,23 +8,15 @@ using ConsumerApp.Models;
 
 namespace ConsumerApp
 {
-    public class MessageHandler : IMessageHandler
+    public class MessageHandler
     {
-        MessageBrokerConsumer messageBroker;
-        Database database;
-        private IMessageBrokerConsumer messageBrokerMock;
-        private IDatabase databaseMock;
+        private readonly IMessageBrokerConsumer messageBroker;
+        private readonly IDatabase database;
 
-        public MessageHandler(MessageBrokerConsumer _messageBroker, Database _database)
+        public MessageHandler(IMessageBrokerConsumer messageBroker, IDatabase database)
         {
-            messageBroker = _messageBroker;
-            database = _database;
-        }
-
-        public MessageHandler(IMessageBrokerConsumer messageBrokerMock, IDatabase databaseMock)
-        {
-            this.messageBrokerMock = messageBrokerMock;
-            this.databaseMock = databaseMock;
+            this.messageBroker = messageBroker ?? throw new ArgumentNullException(nameof(messageBroker));
+            this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
         public void HandleMessage(Message message)
