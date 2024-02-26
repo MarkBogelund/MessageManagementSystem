@@ -13,7 +13,7 @@ namespace ConsumerApp.DataContext
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(localConnectionString);
+            optionsBuilder.UseNpgsql(connectionString);
 
             // Enable automatic migration execution
             optionsBuilder.EnableServiceProviderCaching(false);

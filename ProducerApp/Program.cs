@@ -16,7 +16,7 @@ namespace ProducerApp
             string routingKey = "Broker_key";
             string queueName = "Message_queue";
 
-            var messageBroker = new MessageBrokerProducer(localRabbitMQUri, exchangeName, routingKey, queueName);
+            var messageBroker = new MessageBrokerProducer(rabbitMQUri, exchangeName, routingKey, queueName);
 
             int id_counter = 0;
 
