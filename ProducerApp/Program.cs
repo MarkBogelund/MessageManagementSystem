@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using RabbitMQ.Client;
+using System.Runtime.CompilerServices;
 
 namespace ProducerApp
 {
@@ -16,7 +17,12 @@ namespace ProducerApp
             string routingKey = "Broker_key";
             string queueName = "Message_queue";
 
-            var messageBroker = new MessageBrokerProducer(rabbitMQUri, exchangeName, routingKey, queueName);
+            IConnectionFactory factory = new ConnectionFactory
+            {
+                Uri = new Uri(localRabbitMQUri)
+            };
+
+            var messageBroker = new MessageBrokerProducer(factory, exchangeName, routingKey, queueName);
 
             int id_counter = 0;
 

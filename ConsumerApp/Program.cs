@@ -23,7 +23,7 @@ class Program
         // Create IConnection
         var factory = new ConnectionFactory
         {
-            Uri = new Uri(rabbitMQUri),
+            Uri = new Uri(localRabbitMQUri),
             ClientProvidedName = "Consumer"
         };
 
