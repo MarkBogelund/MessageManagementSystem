@@ -38,6 +38,7 @@ namespace ConsumerApp.test
 
             Assert.That(expectedTimeDifference, Is.EqualTo(result));
         }
+
         [Test]
         public void MessageHandler_HandleMessage_DiscardMessage()
         {
@@ -57,49 +58,40 @@ namespace ConsumerApp.test
             messageHandlerMock.Verify(x => x.HandleData(testMessage), Times.Never);
         }
 
-        [Test]
-        public void MessageHandler_HandleMessage_CallInsertMessageThroughHandleData()
+        public void HandleMessage_EvenSeconds_InsertsIntoDatabase()
         {
             // Arrange
-            var testTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            var message = new Message { 
+                Id = 1,
+                Counter = 2,
+                Time = 1708887144
+            }; // Assuming even seconds
 
-            // make sure seconds are even
-            if (testTime % 2 == 0)
-            { }
-            else
-            {
-                testTime--;
-            }
-            var testMessage = new Message { Id = 1, Counter = 2, Time = testTime }; 
+            // Act
+            messageHandler.HandleMessage(message);
 
-            //Act
-            messageHandler.HandleMessage(testMessage);
-            
             // Assert
-            databaseMock.Verify(x => x.InsertMessage(testMessage), Times.Once);
+            databaseMock.Verify(d => d.InsertMessage(It.IsAny<Message>()), Times.Once);
+            messageBrokerMock.Verify(m => m.SendMessageToQueue(It.IsAny<Message>()), Times.Never);
         }
 
         [Test]
-        public void MessageHandler_HandleMessage_CallSendMessageBackToQueueThroughHandleData()
+        public void HandleMessage_OddSeconds_SendToMessageQueue()
         {
             // Arrange
-            var testTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-
-            // make sure seconds are even
-            if (testTime % 2 == 0)
+            var message = new Message
             {
-                testTime--;
+                Id = 1,
+                Counter = 2,
+                Time = 1708887145
+            }; // Assuming odd seconds
 
-            }
-            else
-            { }
-            var testMessage = new Message { Id = 1, Counter = 2, Time = testTime };
-
-            //Act
-            messageHandler.HandleMessage(testMessage);
+            // Act
+            messageHandler.HandleMessage(message);
 
             // Assert
-            messageBrokerMock.Verify(x => x.SendMessageToQueue(testMessage), Times.Once);
+            databaseMock.Verify(d => d.InsertMessage(It.IsAny<Message>()), Times.Never);
+            messageBrokerMock.Verify(m => m.SendMessageToQueue(It.IsAny<Message>()), Times.Once);
         }
 
         [Test]
@@ -108,7 +100,7 @@ namespace ConsumerApp.test
             var testMessage = new Message { Id = 1, Counter = 2, Time = 1708887144 }; // seconds are even
 
             // Act
-            messageHandler.HandleData(testMessage);
+            messageHandler.HandleMessage(testMessage);
 
             // Assert
             databaseMock.Verify(x => x.InsertMessage(testMessage), Times.Once);
@@ -119,7 +111,7 @@ namespace ConsumerApp.test
             var testMessage = new Message { Id = 1, Counter = 2, Time = 1708887145 }; // seconds are odd
 
             // Act
-            messageHandler.HandleData(testMessage);
+            messageHandler.HandleMessage(testMessage);
 
             // Assert
             messageBrokerMock.Verify(x => x.SendMessageToQueue(testMessage), Times.Once);

@@ -19,35 +19,7 @@ namespace ConsumerApp
             this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
-        public void HandleMessage(Message message)
-        {
-            // Calculate time difference
-            int timeDifference = GetTimeDifference(message);
-
-            // Display received message
-            Console.WriteLine($"Message {message.Id}, Counter: {message.Counter}, Time: {message.Time}, Difference: {timeDifference}");
-
-            // If message is older than 1 minute, discard it
-            if (timeDifference > 60)
-            {
-                Console.WriteLine("Difference > 1 min -> Discarding");
-                Console.WriteLine();
-                return;
-            }
-
-            // If message is not older than 1 minute, handle it
-            HandleData(message);
-        }
-
-        public int GetTimeDifference(Message message)
-        {
-            // Calculate time difference
-            int actualTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            int messageTime = message.Time;
-            return actualTime - messageTime;
-        }
-
-        public void HandleData(Message message)
+        public void HandleMessage(Message message)  
         {
             // Get seconds from message time
             int seconds = message.Time % 60;
@@ -77,6 +49,14 @@ namespace ConsumerApp
 
             // Make sure to separate messages
             Console.WriteLine();
+        }
+
+        public int GetTimeDifference(Message message)
+        {
+            // Calculate time difference
+            int actualTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            int messageTime = message.Time;
+            return actualTime - messageTime;
         }
     }
 }
