@@ -5,6 +5,7 @@ using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using System.Text;
+using ConsumerApp.Interfaces;
 
 namespace ConsumerApp.Tests
 {
@@ -55,6 +56,44 @@ namespace ConsumerApp.Tests
             // Assert
             // Verify that BasicPublish was called with the expected arguments
             _mockChannel.Verify(c => c.BasicPublish("mock-exchange", "mock-routing-key", false, _mockBasicProperties.Object, It.IsAny<ReadOnlyMemory<byte>>()), Times.Once);
+        }
+
+        [Test]
+        public async Task StartConsumingAsync_MessageReceived_EventRaisedWithCorrectMessage()
+        {
+            var consumerMock = new Mock<IMessageBrokerConsumer>();
+            
+            var message = new Message
+            {
+                Id = 1,
+                Counter = 42,
+                Time = 123456
+            };
+
+            var messageJson = JsonConvert.SerializeObject(message);
+            var messageBytes = Encoding.UTF8.GetBytes(messageJson);
+
+            var args = new MessageEventArgs
+            {
+                Body = messageBytes,
+                DeliveryTag = 123 // Some delivery tag
+            };
+
+            Message receivedMessage = null;
+            consumerMock.Setup(c => c.StartConsumingAsync()).Callback(() =>
+            {
+                _messageBrokerConsumer.OnReceived(consumerMock.Object, args);
+            });
+
+            // Act
+            var task = _messageBrokerConsumer.StartConsumingAsync();
+            receivedMessage = await task;
+
+            // Assert
+            Assert.IsNotNull(receivedMessage);
+            Assert.AreEqual(message.Id, receivedMessage.Id);
+            Assert.AreEqual(message.Counter, receivedMessage.Counter);
+            Assert.AreEqual(message.Time, receivedMessage.Time);
         }
 
         [Test]
