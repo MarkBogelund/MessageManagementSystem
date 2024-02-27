@@ -9,7 +9,7 @@ namespace ConsumerApp.Interfaces
 {
     public interface IMessageBrokerConsumer
     {
-        Task<Message> StartConsumingAsync();
+        Task<Message> RecieveMessageAsync();
         void SendMessageToQueue(Message message);
         void StopConsuming();
     }
