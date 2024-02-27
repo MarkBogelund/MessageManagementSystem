@@ -37,7 +37,7 @@ namespace ConsumerApp.Tests
             _mockConnection.Setup(c => c.CreateModel()).Returns(_mockChannel.Object);
 
             // Create an instance of MessageBrokerConsumer with the mock connection factory
-            _messageBrokerConsumer = new MessageBrokerConsumer(mockConnectionFactory.Object, "amqp://guest:guest@localhost:5672", "mock-exchange", "mock-routing-key", "mock-queue");
+            _messageBrokerConsumer = new MessageBrokerConsumer(mockConnectionFactory.Object, "mock-exchange", "mock-routing-key", "mock-queue");
         }
 
         [Test]
@@ -59,41 +59,30 @@ namespace ConsumerApp.Tests
         }
 
         [Test]
-        public async Task StartConsumingAsync_MessageReceived_EventRaisedWithCorrectMessage()
+        public void ExtractMessageData_ReturnsMessage()
         {
-            var consumerMock = new Mock<IMessageBrokerConsumer>();
-            
+            // Arrange
             var message = new Message
             {
                 Id = 1,
-                Counter = 42,
-                Time = 123456
+                Counter = 1,
+                Time = 1
             };
 
-            var messageJson = JsonConvert.SerializeObject(message);
-            var messageBytes = Encoding.UTF8.GetBytes(messageJson);
-
-            var args = new MessageEventArgs
+            // Mock sender and event args
+            var sender = new object();
+            var eventArgs = new BasicDeliverEventArgs
             {
-                Body = messageBytes,
-                DeliveryTag = 123 // Some delivery tag
+                Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message))
             };
-
-            Message receivedMessage = null;
-            consumerMock.Setup(c => c.StartConsumingAsync()).Callback(() =>
-            {
-                _messageBrokerConsumer.OnReceived(consumerMock.Object, args);
-            });
 
             // Act
-            var task = _messageBrokerConsumer.StartConsumingAsync();
-            receivedMessage = await task;
+            var result = _messageBrokerConsumer.ExtractMessageData(sender, eventArgs, _mockChannel.Object);
 
             // Assert
-            Assert.IsNotNull(receivedMessage);
-            Assert.AreEqual(message.Id, receivedMessage.Id);
-            Assert.AreEqual(message.Counter, receivedMessage.Counter);
-            Assert.AreEqual(message.Time, receivedMessage.Time);
+            Assert.That(message.Id, Is.EqualTo(result.Id));
+            Assert.That(message.Counter, Is.EqualTo(result.Counter));
+            Assert.That(message.Time, Is.EqualTo(result.Time));
         }
 
         [Test]
