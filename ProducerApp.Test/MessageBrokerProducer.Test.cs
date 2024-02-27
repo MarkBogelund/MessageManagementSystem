@@ -2,6 +2,9 @@ using NUnit.Framework;
 using Moq;
 using RabbitMQ.Client;
 using System;
+using ProducerApp;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
+using NUnit.Framework.Internal;
 
 namespace ProducerApp.Tests
 {
@@ -34,6 +37,8 @@ namespace ProducerApp.Tests
 
             // Create an instance of MessageBrokerProducer with the mock connection factory
             _messageBrokerProducer = new MessageBrokerProducer(mockConnectionFactory.Object, "mock-exchange", "mock-routing-key", "mock-queue");
+
+
         }
 
         [Test]
@@ -64,5 +69,29 @@ namespace ProducerApp.Tests
             _mockChannel.Verify(c => c.Close(), Times.Once);
             _mockConnection.Verify(c => c.Close(), Times.Once);
         }
+
+        [Test]
+        public void CreateMessage_ShouldReturnValidMessage()
+        {
+            // Arrange
+            int testId = 42;
+            int testTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+            Message expectedMessage = new Message
+            {
+                Id = testId,
+                Counter = 0,
+                Time = testTime
+            };
+            // Act
+            Message result = _messageBrokerProducer.CreateMessage(testId);
+
+            // Assert
+            Assert.That(result.Counter, Is.EqualTo(expectedMessage.Counter));
+            Assert.That(testId, Is.EqualTo(result.Id));
+            Assert.That(testTime, Is.EqualTo(result.Time));
+        }
+
     }
+
 }
