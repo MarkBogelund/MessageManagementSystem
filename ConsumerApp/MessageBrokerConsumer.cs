@@ -22,7 +22,7 @@ namespace ConsumerApp
         // Properties for sending messages to the queue
         private IBasicProperties _properties;
 
-        public MessageBrokerConsumer(IConnectionFactory factory, string uri, string exchangeName, string routingKey, string queueName)
+        public MessageBrokerConsumer(IConnectionFactory factory, string exchangeName, string routingKey, string queueName)
         {
             // Setup connection to RabbitMQ
             _connection = factory.CreateConnection();
@@ -49,49 +49,49 @@ namespace ConsumerApp
             _channel.BasicQos(0, 1, false);
         }
 
-        public async Task<Message> StartConsumingAsync()
+        public Task<Message> RecieveMessageAsync() // This is interacting with a boundary, so it's not a pure unit test
         {
-            // Create a task completion source to await the next message
+            // Create task completion source to contain the message data
             var tcs = new TaskCompletionSource<Message>();
 
             // Set up a callback to be invoked when a message is received
             _consumer.Received += (sender, args) =>
             {
-                try
-                {
-                    // Extract and decode the message from the event arguments
-                    var body = args.Body.ToArray();
-                    string message = Encoding.UTF8.GetString(body);
+                if (sender == null) throw new Exception("Received message was null.");
+                
+                // Extract and decode the message from the event arguments
+                Message message = ExtractMessageData(sender, args, _channel);
 
-                    var messageData = JsonConvert.DeserializeObject<Message>(message);
+                if (tcs.Task.IsCompleted) return;
 
-                    // If the task is not yet completed, set the result
-                    if (!tcs.Task.IsCompleted)
-                    {
-                        if (messageData == null)
-                        {
-                            Console.WriteLine("Received message was null.");
-                            return;
-                        }
+                // Acknowledge the message after it was processed successfully
+                _channel.BasicAck(args.DeliveryTag, false);
 
-                        tcs.SetResult(messageData);
-
-                        // Acknowledge the message after it was processed successfully
-                        _channel.BasicAck(args.DeliveryTag, false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log the error or handle it as appropriate for your application
-                    Console.WriteLine($"Error processing message: {ex.Message}");
-                }
+                // Set the result of the task to the message data
+                tcs.SetResult(message);
             };
 
             // Start consuming messages
             _channel.BasicConsume(_queueName, false, _consumer);
 
-            // Await the next message
-            return await tcs.Task;
+            // Return the task to await the next message
+            return tcs.Task;
+        }
+
+        public Message ExtractMessageData(object sender, BasicDeliverEventArgs args, IModel channel)
+        {
+            // Extract and decode the message from the event arguments
+            var body = args.Body.ToArray();
+            string message = Encoding.UTF8.GetString(body);
+
+            var messageData = JsonConvert.DeserializeObject<Message>(message);
+
+            if (messageData == null)
+            {
+                throw new Exception("Received message was null.");
+            }
+
+            return messageData;
         }
 
         public void SendMessageToQueue(Message message)

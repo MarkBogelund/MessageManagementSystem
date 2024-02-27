@@ -28,7 +28,7 @@ class Program
         };
 
         // Create an instance of MessageBrokerConsumer
-        var messageBroker = new MessageBrokerConsumer(factory, localRabbitMQUri, exchangeName, routingKey, queueName);
+        var messageBroker = new MessageBrokerConsumer(factory, exchangeName, routingKey, queueName);
 
         AppDBContext context = new AppDBContext();
         context.Database.Migrate();
@@ -42,7 +42,7 @@ class Program
         while (running)
         {
             // If a new message is received, handle it
-            Message message = await messageBroker.StartConsumingAsync();
+            Message message = await messageBroker.RecieveMessageAsync();
             messageHandler.HandleMessage(message);
         }
 
