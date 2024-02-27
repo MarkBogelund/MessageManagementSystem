@@ -43,7 +43,11 @@ class Program
         {
             // If a new message is received, handle it
             Message message = await messageBroker.RecieveMessageAsync();
-            messageHandler.HandleMessage(message);
+
+            if (messageHandler.GetTimeDifference(message) > 60)
+                Console.WriteLine("Difference > 1 min -> Discarding\n");
+            else
+                messageHandler.HandleMessage(message);
         }
 
         // Terminate the application
