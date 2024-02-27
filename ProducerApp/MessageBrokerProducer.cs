@@ -17,15 +17,8 @@ namespace ProducerApp
 
         private IBasicProperties _properties;
 
-        public MessageBrokerProducer(string uri, string exchangeName, string routingKey, string queueName)
+        public MessageBrokerProducer(IConnectionFactory factory, string exchangeName, string routingKey, string queueName)
         {
-            // Create a connection to RabbitMQ
-            var factory = new ConnectionFactory
-            {
-                Uri = new Uri(uri),
-                ClientProvidedName = "Producer"
-            };
-
             // Setup connection and channel
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
@@ -58,6 +51,21 @@ namespace ProducerApp
         {
             _channel.Close();
             _connection.Close();
+        }
+
+        public Message CreateMessage(int id_counter)
+        {
+            // Create message data
+            int _counter = 0;
+            int _time = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            int _id = id_counter;
+
+            return new Message
+            {
+                Id = _id,
+                Counter = _counter,
+                Time = _time
+            };
         }
     }
 }

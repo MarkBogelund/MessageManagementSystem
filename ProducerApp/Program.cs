@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using RabbitMQ.Client;
+using System.Runtime.CompilerServices;
 
 namespace ProducerApp
 {
@@ -16,7 +17,12 @@ namespace ProducerApp
             string routingKey = "Broker_key";
             string queueName = "Message_queue";
 
-            var messageBroker = new MessageBrokerProducer(rabbitMQUri, exchangeName, routingKey, queueName);
+            IConnectionFactory factory = new ConnectionFactory
+            {
+                Uri = new Uri(localRabbitMQUri)
+            };
+
+            var messageBroker = new MessageBrokerProducer(factory, exchangeName, routingKey, queueName);
 
             int id_counter = 0;
 
@@ -29,7 +35,7 @@ namespace ProducerApp
                 id_counter++;
 
                 // Create message
-                Message message = CreateMessage(id_counter);
+                Message message = messageBroker.CreateMessage(id_counter);
 
                 // Publish message
                 messageBroker.PublishMessage(message);
@@ -44,19 +50,7 @@ namespace ProducerApp
             messageBroker.CloseConnection();
         }
 
-        public static Message CreateMessage(int id_counter)
-        {
-            // Create message data
-            int _counter = 0;
-            int _time = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            int _id = id_counter;
-
-            return new Message
-            {
-                Id = _id,
-                Counter = _counter,
-                Time = _time
-            };
-        }
+       
     }
+
 }
