@@ -11,15 +11,15 @@ namespace ProducerApp
             bool running = true;
 
             // Connection properties for RabbitMQ
-            string rabbitMQUri = "amqp://guest:guest@rabbitmq:5672"; // For Docker
-            string localRabbitMQUri = "amqp://guest:guest@localhost:5672"; // For development
+            string rabbitMQUri = Environment.GetEnvironmentVariable("RABBITMQ_URI") ?? "amqp://guest:guest@rabbitmq:5672"; // For Docker
+            string localRabbitMQUri = Environment.GetEnvironmentVariable("LOCAL_RABBITMQ_URI") ?? "amqp://guest:guest@localhost:5672"; // For development
             string exchangeName = "Message_Broker";
             string routingKey = "Broker_key";
             string queueName = "Message_queue";
 
             IConnectionFactory factory = new ConnectionFactory
             {
-                Uri = new Uri(localRabbitMQUri)
+                Uri = new Uri(Environment.GetEnvironmentVariable("ENVIRONMENT") == "development" ? localRabbitMQUri : rabbitMQUri)
             };
 
             var messageBroker = new MessageBrokerProducer(factory, exchangeName, routingKey, queueName);

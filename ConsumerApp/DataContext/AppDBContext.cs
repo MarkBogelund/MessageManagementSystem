@@ -6,14 +6,15 @@ namespace ConsumerApp.DataContext
     public class AppDBContext : DbContext
     {
         // Connection string for Docker and local connection string for development
-        string connectionString = "Host=postgres;Database=messagesDB;Username=postgres;Password=postgres";
-        string localConnectionString = "Host=localhost;Database=messagesDB;Username=postgres;Password=postgres";
-        
+        string connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? "Host=postgres;Database=messagesDB;Username=postgres;Password=postgres";
+        string localConnectionString = Environment.GetEnvironmentVariable("LOCAL_DATABASE_CONNECTION_STRING") ?? "Host=localhost;Database=messagesDB;Username=postgres;Password=postgres";
+
         public DbSet<Message> Messages { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(localConnectionString);
+            string selectedConnectionString = Environment.GetEnvironmentVariable("ENVIRONMENT") == "development" ? localConnectionString : connectionString;
+            optionsBuilder.UseNpgsql(selectedConnectionString);
 
             // Enable automatic migration execution
             optionsBuilder.EnableServiceProviderCaching(false);

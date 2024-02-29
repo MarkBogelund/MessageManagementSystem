@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ProducerApp": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ENVIRONMENT": "development"
+      }
+    }
+  }
+}
