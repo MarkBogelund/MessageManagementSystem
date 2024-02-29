@@ -1,6 +1,5 @@
 ﻿using ConsumerApp.DataContext;
 using ConsumerApp.Models;
-using Microsoft.EntityFrameworkCore;
 using ConsumerApp.Interfaces;
 
 namespace ConsumerApp

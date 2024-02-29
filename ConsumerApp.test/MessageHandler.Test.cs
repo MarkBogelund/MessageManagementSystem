@@ -58,6 +58,7 @@ namespace ConsumerApp.test
             messageHandlerMock.Verify(x => x.HandleData(testMessage), Times.Never);
         }
 
+        [Test]
         public void HandleMessage_EvenSeconds_InsertsIntoDatabase()
         {
             // Arrange
