@@ -86,6 +86,34 @@ namespace ConsumerApp.Tests
         }
 
         [Test]
+        public void ExtractMessageData_ThrowsException_WhenMessageIsNull()
+        {
+            // Arrange
+            var sender = new object();
+            var eventArgs = new BasicDeliverEventArgs
+            {
+                Body = Encoding.UTF8.GetBytes("null")
+            };
+
+            // Act and Assert
+            Assert.That(() => _messageBrokerConsumer.ExtractMessageData(sender, eventArgs, _mockChannel.Object), Throws.Exception);
+        }
+
+        [Test]
+        public void ExtractMessageData_ThrowsException_WhenMessageIsInvalid()
+        {
+            // Arrange
+            var sender = new object();
+            var eventArgs = new BasicDeliverEventArgs
+            {
+                Body = Encoding.UTF8.GetBytes("invalid")
+            };
+
+            // Act and Assert
+            Assert.That(() => _messageBrokerConsumer.ExtractMessageData(sender, eventArgs, _mockChannel.Object), Throws.Exception);
+        }
+
+        [Test]
         public void StopConsuming_ClosesChannelAndConnection()
         {
             // Act
