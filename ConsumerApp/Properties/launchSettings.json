@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ConsumerApp": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ENVIRONMENT": "development"
+      }
+    }
+  }
+}
