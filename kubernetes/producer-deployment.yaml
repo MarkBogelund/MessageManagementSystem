@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: producerapp-deployment
+  namespace: message-management-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: producerapp
+  template:
+    metadata:
+      labels:
+        app: producerapp
+    spec:
+      containers:
+        - name: producerapp
+          image: markbogelund/producerapp:latest
+          env:
+            - name: ENVIRONMENT
+              value: "deployment"
+            - name: RABBITMQ_URI
+              value: "amqp://guest:guest@rabbitmq-service:5672"
+            - name: LOCAL_RABBITMQ_URI
+              value: "amqp://guest:guest@localhost:5672"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: producerapp-service
+  namespace: message-management-system
+spec:
+  selector:
+    app: producerapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
