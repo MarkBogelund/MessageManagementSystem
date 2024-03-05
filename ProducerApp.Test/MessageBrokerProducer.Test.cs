@@ -19,31 +19,29 @@ namespace ProducerApp.Tests
         [SetUp]
         public void Setup()
         {
-            // Mock the RabbitMQ connection and channel
+            // Mock RabbitMQ with its properties
             _mockConnection = new Mock<IConnection>();
             _mockChannel = new Mock<IModel>();
 
-            // Mock the BasicProperties
             _mockBasicProperties = new Mock<IBasicProperties>();
             _mockChannel.Setup(c => c.CreateBasicProperties()).Returns(_mockBasicProperties.Object);
 
-            // Set up the mock to expect a call to BasicPublish with specific arguments
             _mockChannel.Setup(c => c.BasicPublish("mock-exchange", "mock-routing-key", false, _mockBasicProperties.Object, It.IsAny<ReadOnlyMemory<byte>>()));
 
-            // Mock the CreateConnection and CreateModel methods to return the mock connection and channel
+            // Mock the CreateConnection and CreateModel
             var mockConnectionFactory = new Mock<IConnectionFactory>();
             mockConnectionFactory.Setup(f => f.CreateConnection()).Returns(_mockConnection.Object);
             _mockConnection.Setup(c => c.CreateModel()).Returns(_mockChannel.Object);
 
-            // Create an instance of MessageBrokerProducer with the mock connection factory
             _messageBrokerProducer = new MessageBrokerProducer(mockConnectionFactory.Object, "mock-exchange", "mock-routing-key", "mock-queue");
 
 
         }
 
         [Test]
-        public void PublishMessage_Success()
+        public void PublishMessage_MessageIsPublished()
         {
+            // Arrange
             Message message = new Message
             {
                 Id = 1,
@@ -55,12 +53,11 @@ namespace ProducerApp.Tests
             _messageBrokerProducer.PublishMessage(message);
 
             // Assert
-            // Verify that BasicPublish was called with the expected arguments
             _mockChannel.Verify(c => c.BasicPublish("mock-exchange", "mock-routing-key", false, _mockBasicProperties.Object, It.IsAny<ReadOnlyMemory<byte>>()), Times.Once);
         }
 
         [Test]
-        public void CloseConnection_Success()
+        public void CloseConnection_ConnectionIsClosed()
         {
             // Act
             _messageBrokerProducer.CloseConnection();
@@ -71,7 +68,7 @@ namespace ProducerApp.Tests
         }
 
         [Test]
-        public void CreateMessage_ShouldReturnValidMessage()
+        public void CreateMessage_ReturnsValidMessage()
         {
             // Arrange
             int testId = 42;
@@ -83,6 +80,7 @@ namespace ProducerApp.Tests
                 Counter = 0,
                 Time = testTime
             };
+
             // Act
             Message result = _messageBrokerProducer.CreateMessage(testId);
 
