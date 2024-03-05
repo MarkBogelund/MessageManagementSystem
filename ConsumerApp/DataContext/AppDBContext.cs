@@ -20,10 +20,9 @@ namespace ConsumerApp.DataContext
             optionsBuilder.EnableServiceProviderCaching(false);
             optionsBuilder.EnableSensitiveDataLogging();
         }
-
+        // Automatically create the table for the Message model
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure your model here if needed
             modelBuilder.Entity<Message>().ToTable("Messages");
             modelBuilder.Entity<Message>().HasKey(m => m.Id);
             modelBuilder.Entity<Message>().Property(m => m.Counter).IsRequired();

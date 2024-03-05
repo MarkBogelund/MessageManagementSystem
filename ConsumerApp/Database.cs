@@ -8,7 +8,6 @@ namespace ConsumerApp
     {
         public void InsertMessage(Message message)
         {          
-            // Insert the message using the injected context
             context.Messages.Add(message);
             context.SaveChanges();
         }

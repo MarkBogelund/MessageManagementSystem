@@ -31,7 +31,7 @@ namespace ConsumerApp.Tests
             // Set up the mock to expect a call to BasicPublish with specific arguments
             _mockChannel.Setup(c => c.BasicPublish("mock-exchange", "mock-routing-key", false, _mockBasicProperties.Object, It.IsAny<ReadOnlyMemory<byte>>()));
 
-            // Mock the CreateConnection and CreateModel methods to return the mock connection and channel
+            // Mock the CreateConnection and CreateModel methods
             var mockConnectionFactory = new Mock<IConnectionFactory>();
             mockConnectionFactory.Setup(f => f.CreateConnection()).Returns(_mockConnection.Object);
             _mockConnection.Setup(c => c.CreateModel()).Returns(_mockChannel.Object);
@@ -43,6 +43,7 @@ namespace ConsumerApp.Tests
         [Test]
         public void SendMessageToQueue_SendsMessageToQueue()
         {
+            // Arrange
             Message message = new Message
             {
                 Id = 1,
@@ -86,7 +87,7 @@ namespace ConsumerApp.Tests
         }
 
         [Test]
-        public void ExtractMessageData_ThrowsException_WhenMessageIsNull()
+        public void ExtractMessageData_WhenMessageIsNull_ThrowsException()
         {
             // Arrange
             var sender = new object();
@@ -100,7 +101,7 @@ namespace ConsumerApp.Tests
         }
 
         [Test]
-        public void ExtractMessageData_ThrowsException_WhenMessageIsInvalid()
+        public void ExtractMessageData_WhenMessageIsInvalid_ThrowsException()
         {
             // Arrange
             var sender = new object();
@@ -120,7 +121,6 @@ namespace ConsumerApp.Tests
             _messageBrokerConsumer.StopConsuming();
 
             // Assert
-            // Verify that Close was called on the channel and the connection
             _mockChannel.Verify(c => c.Close(), Times.Once);
             _mockConnection.Verify(c => c.Close(), Times.Once);
         }

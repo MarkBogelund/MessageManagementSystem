@@ -22,9 +22,8 @@ namespace ConsumerApp.test
             messageHandler = new MessageHandler(messageBrokerMock.Object, databaseMock.Object);
         }
 
-        //ClassName_MethodName_ExpectedResult
         [Test]
-        public void MessageHandler_GetTimeDifference_ReturnsTimeDifference()
+        public void GetTimeDifference_ReturnsTimeDifference()
         {
             // Arrange
             var testMessage = new Message { Id = 1, Counter = 2, Time = 1708887143 }; // time at 19:52 25/02/2024
@@ -32,15 +31,15 @@ namespace ConsumerApp.test
             // Act
             int result = messageHandler.GetTimeDifference(testMessage);
 
-            // Assert
             int expectedTimeDifference =
                 (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds - testMessage.Time;
 
+            // Assert
             Assert.That(expectedTimeDifference, Is.EqualTo(result));
         }
 
         [Test]
-        public void MessageHandler_HandleMessage_DiscardMessage()
+        public void HandleMessage_WhenMessageIsTooOld_DiscardsMessage()
         {
             // Arrange
             var messageHandlerMock = new Mock<IMessageHandler>();
@@ -48,7 +47,7 @@ namespace ConsumerApp.test
             {
                 Id = 0,
                 Counter = 1,
-                Time = 1000,
+                Time = 1000, // 1970-01-01 00:16:40 -> Too old
             };
 
             // Act
@@ -65,8 +64,8 @@ namespace ConsumerApp.test
             var message = new Message { 
                 Id = 1,
                 Counter = 2,
-                Time = 1708887144
-            }; // Assuming even seconds
+                Time = 1708887144 // Seconds even
+            };
 
             // Act
             messageHandler.HandleMessage(message);
@@ -84,8 +83,8 @@ namespace ConsumerApp.test
             {
                 Id = 1,
                 Counter = 2,
-                Time = 1708887145
-            }; // Assuming odd seconds
+                Time = 1708887145 // Seconds odd
+            };
 
             // Act
             messageHandler.HandleMessage(message);
@@ -96,9 +95,10 @@ namespace ConsumerApp.test
         }
 
         [Test]
-        public void MessageHandler_handleData_CallInsertMessage()
+        public void HandleMessage_SecondsAreEven_CallInsertMessage()
         {
-            var testMessage = new Message { Id = 1, Counter = 2, Time = 1708887144 }; // seconds are even
+            // Arrange
+            Message testMessage = new Message { Id = 1, Counter = 2, Time = 1708887144 }; // seconds are even
 
             // Act
             messageHandler.HandleMessage(testMessage);
@@ -106,10 +106,12 @@ namespace ConsumerApp.test
             // Assert
             databaseMock.Verify(x => x.InsertMessage(testMessage), Times.Once);
         }
+
         [Test]
-        public void MessageHandler_handleData_CallSendBackToQueue()
+        public void HandleMessage_SecondsAreOdd_CallSendMessageToQueue()
         {
-            var testMessage = new Message { Id = 1, Counter = 2, Time = 1708887145 }; // seconds are odd
+            // Arrange
+            Message testMessage = new Message { Id = 1, Counter = 2, Time = 1708887145 }; // seconds are odd
 
             // Act
             messageHandler.HandleMessage(testMessage);

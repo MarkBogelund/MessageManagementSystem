@@ -32,10 +32,9 @@ class Program
         var messageBroker = new MessageBrokerConsumer(factory, exchangeName, routingKey, queueName);
 
         AppDBContext context = new AppDBContext();
-        context.Database.Migrate();
+        context.Database.Migrate(); // Create the message table if it doesn't exist
 
         Database database = new Database(context);
-
         MessageHandler messageHandler = new MessageHandler(messageBroker, database);
 
         Console.WriteLine("Consuming messages...");
