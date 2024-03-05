@@ -39,9 +39,9 @@ namespace ProducerApp.Tests
         }
 
         [Test]
-        public void PublishMessage_Success()
+        public void PublishMessage_MessageIsPublished()
         {
-            //arrange
+            // Arrange
             Message message = new Message
             {
                 Id = 1,
@@ -57,7 +57,7 @@ namespace ProducerApp.Tests
         }
 
         [Test]
-        public void CloseConnection_Success()
+        public void CloseConnection_ConnectionIsClosed()
         {
             // Act
             _messageBrokerProducer.CloseConnection();
@@ -68,7 +68,7 @@ namespace ProducerApp.Tests
         }
 
         [Test]
-        public void CreateMessage_ShouldReturnValidMessage()
+        public void CreateMessage_ReturnsValidMessage()
         {
             // Arrange
             int testId = 42;
