@@ -6,8 +6,8 @@ namespace ConsumerApp.DataContext
     public class AppDBContext : DbContext
     {
         // Connection string for Docker and local connection string for development
-        string connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? "Host=postgres;Database=messagesDB;Username=postgres;Password=postgres";
-        string localConnectionString = Environment.GetEnvironmentVariable("LOCAL_DATABASE_CONNECTION_STRING") ?? "Host=localhost;Database=messagesDB;Username=postgres;Password=postgres";
+        string connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")!;
+        string localConnectionString = Environment.GetEnvironmentVariable("LOCAL_DATABASE_CONNECTION_STRING")!;
 
         public DbSet<Message> Messages { get; set; }
 

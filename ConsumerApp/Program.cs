@@ -11,8 +11,8 @@ class Program
     static async Task Main()
     {
         // RabbitMQ connection parameters
-        string rabbitMQUri = Environment.GetEnvironmentVariable("RABBITMQ_URI") ?? "amqp://guest:guest@rabbitmq:5672"; // For Docker
-        string localRabbitMQUri = Environment.GetEnvironmentVariable("LOCAL_RABBITMQ_URI") ?? "amqp://guest:guest@localhost:5672"; // For development
+        string rabbitMQUri = Environment.GetEnvironmentVariable("RABBITMQ_URI")!; // For Docker
+        string localRabbitMQUri = Environment.GetEnvironmentVariable("LOCAL_RABBITMQ_URI")!; // For development
         
         string exchangeName = "Message_Broker";
         string routingKey = "Broker_key";

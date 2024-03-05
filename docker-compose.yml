@@ -51,3 +51,5 @@ services:
       ENVIRONMENT: "deployment"
       DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=messagesDB"
       LOCAL_DATABASE_CONNECTION_STRING: "Host=localhost;Port=5432;Database=messagesDB;Username=postgres;Password=postgres"
+      RABBITMQ_URI: "amqp://guest:guest@rabbitmq:5672"
+      LOCAL_RABBITMQ_URI: "amqp://guest:guest@localhost:5672"
