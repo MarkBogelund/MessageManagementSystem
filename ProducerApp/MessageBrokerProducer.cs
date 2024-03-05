@@ -14,7 +14,6 @@ namespace ProducerApp
         private readonly string _exchangeName;
         private readonly string _routingKey;
         private readonly string _queueName;
-
         private IBasicProperties _properties;
 
         public MessageBrokerProducer(IConnectionFactory factory, string exchangeName, string routingKey, string queueName)
@@ -42,7 +41,7 @@ namespace ProducerApp
 
         public void PublishMessage(Message message)
         {
-            // Convert message to byte array and publish
+            // Convert message to byte array with encoding in "UTF8" and publish
             byte[] messageBodyBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
             _channel.BasicPublish(_exchangeName, _routingKey, _properties, messageBodyBytes);
         }

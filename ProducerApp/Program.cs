@@ -34,16 +34,13 @@ namespace ProducerApp
                 // Get unique id
                 id_counter++;
 
-                // Create message
                 Message message = messageBroker.CreateMessage(id_counter);
 
-                // Publish message
                 messageBroker.PublishMessage(message);
 
                 // Log message
                 Console.WriteLine($"Message {message.Id}, Counter: {message.Counter}, Time: {message.Time}\n");
 
-                // Delay for 1 second
                 Thread.Sleep(1000);
             }
 
